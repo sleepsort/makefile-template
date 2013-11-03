@@ -13,10 +13,12 @@
 # `-- main 
 #     `-- target.cpp
 #
-# To build targets, simply run:
+# To build targets, simply:
 # $ make
-# or
-# $ make all
+# 
+# To (possibly) updates excutable files 
+# and then run program:
+# $ make all run
 #
 
 CC	:= g++
@@ -53,6 +55,9 @@ all:always $(targets)
 
 $(foreach btar,$(targets),$(eval $(call make-target,$(notdir $(btar)))))
 $(foreach bdir,$(dirctry),$(eval $(call make-intermediate,$(bdir))))
+
+run:
+	$(V)$(OBJ)target -arguments
 
 .PHONY:clean always reset test
 always:
