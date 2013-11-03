@@ -55,3 +55,7 @@ bypid-extract-pattern-2:
 $ make -j3 bypid-extract-pattern
 
 
+# clean latex files:
+#
+# $(RM) -f $(JOBNAME).{log,aux,bbl,blg,toc,lof,lot,out,dvi,4tc,css,lg,idv,xref,tmp}
+#
