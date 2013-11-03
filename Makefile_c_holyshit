@@ -4,14 +4,21 @@
 # .
 # |-- Makefile
 # |-- lib
-# |   `-- abc.a
+# |   |-- lib32pugixml.a
+# |   `-- lib64pugixml.a
 # |-- obj
 # |   |-- intermediate.o
 # |   `-- target
+# |-- template 
+# |   `-- template.cpp
 # |-- othr
 # |   `-- intermediate.cpp
 # `-- main 
 #     `-- target.cpp
+#
+# Source files in template/ won't be compiled.
+# Source files in main/ should be files with main() entry
+# Source files in other directories will be used as intermediate objects
 #
 # To build targets, simply:
 # $ make
@@ -21,34 +28,42 @@
 # $ make all run
 #
 
+ARCH := $(shell getconf LONG_BIT)
 CC	:= g++
 V	:= @
 RM	+= -r
-#LIB += -lpthread ./lib/abc.a
-USER_FLAGS+= -Wall -O2 -I .
-OBJ := ../obj/
+LIB += -lpthread ./lib/lib$(ARCH)pugixml.a ./lib/lib$(ARCH)porter.a
+#LIB += ./lib/lib32pugixml.a ./lib/lib32porter.a
+#LIB += ./lib/lib64pugixml.a ./lib/lib64porter.a
+USER_FLAGS += -std=c++11 -Wall -O2 -I .
+OBJ := ./obj/
 
+# targets: executable with main method
+# objects: .o files, (files under 'template' are omited)
+# dirctry: folders with include files (also omit 'template')
 targets := $(wildcard main/*.cpp) $(wildcard main/*.c)
 objects := $(wildcard */*.cpp) $(wildcard */*.c)
 objects := $(filter-out $(targets), $(objects))
 objects := $(patsubst %.cpp,%.o,$(objects))
 dirctry := $(sort $(dir $(objects)))
 dirctry := $(patsubst %/,%,$(dirctry))
+dirctry := $(filter-out template, $(dirctry))
+objects := $(filter-out template/%,$(objects))
 objects := $(notdir $(objects))
 objects := $(addprefix $(OBJ),$(objects))
 targets := $(basename $(notdir $(targets)))
 targets := $(addprefix $(OBJ),$(targets))
 
 define make-target
-$(OBJ)$1: main/$1.cpp $(objects)
+$(OBJ)$1: main/$1.cpp $(objects) template/template.h template/template.cpp
 	@echo + cc $$<
-	$(V)$(CC) $(USER_FLAGS) -o $$@ $$^ $(LIB)
+	$(V)$(CC) $(USER_FLAGS) -o $$@ main/$1.cpp $(objects) $(LIB)
 endef
 
 define make-intermediate 
-$(OBJ)%.o: $1/%.cpp
+$(OBJ)%.o: $1/%.cpp $1/%.h
 	@echo + cc $$<
-	$(V)$(CC) -c $(USER_FLAGS) -o $$@ $$^
+	$(V)$(CC) -c $(USER_FLAGS) -o $$@ $$<
 endef
 
 all:always $(targets)
@@ -58,6 +73,9 @@ $(foreach bdir,$(dirctry),$(eval $(call make-intermediate,$(bdir))))
 
 run:
 	$(V)$(OBJ)target -arguments
+
+clean:
+	$(V)$(RM) $(OBJ)
 
 .PHONY:clean always reset test
 always:
