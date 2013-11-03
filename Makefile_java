@@ -1,0 +1,58 @@
+# Makefile template for small java project
+#
+# Put source file under $(SRC), library file under $(LIB)
+# and class file will be generated under $(OBJ).
+# .
+# |-- Makefile
+# |-- lib
+# |   `-- abc.jar
+# |-- obj
+# |   |-- Ref.class
+# |   `-- Test.class
+# `-- src
+#     |-- Ref.java
+#     `-- Test.java
+#
+# To build targets, simply run:
+# $ make
+# or
+# $ make all
+#
+
+OBJ = obj
+SRC = src
+JARS = $(wildcard lib/*.jar)
+LIB = .:$(OBJ):$(shell echo '$(JARS)'|sed 's/jar /jar:/g')
+RUN = @java -classpath $(LIB)
+
+targets := $(wildcard */*.java)
+targets := $(patsubst %.java,%.class,$(targets))
+targets := $(notdir $(targets))
+targets := $(addprefix $(OBJ)/,$(targets))
+
+define build
+	@echo + cc $<
+	@javac -classpath $(LIB) $< -d $(OBJ) $*
+endef
+define extend 
+	$(shell echo $1|sed 's/.class/.java/'|sed 's/$(OBJ)/$(SRC)/')
+endef
+
+all: always $(targets)
+
+.SECONDEXPANSION:
+$(OBJ)/Ref.class: $$(call extend,$$@) 
+	$(call build)
+$(OBJ)/Test.class:$$(call extend,$$@) $(OBJ)/Ref.class
+	$(call build)
+
+run:
+	$(RUN) Test
+
+
+.PHONY: clean always
+clean:
+	@rm -rf $(OBJ)
+always:
+	@mkdir -p $(OBJ)
+

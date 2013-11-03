@@ -1,0 +1,25 @@
+# Makefile for latex slides
+#
+# Hierarchy:
+# .
+# |-- Makefile
+# |-- xxx.tex
+# `-- xxx.pdf
+#
+
+targets := $(wildcard *.tex)
+targets := $(basename $(notdir $(targets)))
+targets := $(addsuffix .pdf,$(targets))
+
+all: $(targets)
+%.pdf: %.tex
+	pdflatex  $(addsuffix .tex, $(basename $^))
+	mv $(addsuffix .out, $(basename $^)) $(addsuffix .tmp.out, $(basename $^))
+	./bmtrans.pl $(addsuffix .tmp.out, $(basename $^)) > $(addsuffix .out, $(basename $^))
+	pdflatex  $(addsuffix .tex, $(basename $^))
+	rm -rf *.log *.aux *.dvi *.ps *.toc *.out *.nav *.snm *.vrb
+.PHONY: clean show
+clean:
+	rm -rf $(targets) *.log *.aux *.dvi *.ps *.toc *.out *.nav *.snm *.vrb
+show:
+	evince $(targets) 

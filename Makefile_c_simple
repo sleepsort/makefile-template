@@ -1,0 +1,20 @@
+# Makefile template for mini c project
+
+#-include conf/env.mk
+CC	:= g++
+V	:= @
+RM	+= -r
+LIB	+= ./lib/libTCWordSeg.a -lpthread
+USER_FLAGS+= -Wall -I .
+
+all: weibo_server
+weibo_server: weibo_server.cpp WrapperSockTcp.o
+	@echo + cc $<
+	$(V)$(CC) $(USER_FLAGS) -o $@ $^ $(LIB)
+WrapperSockTcp.o: WrapperSockTcp.cpp
+	@echo + cc $<
+	$(V)$(CC) -c $(USER_FLAGS) $^
+	
+.PHONY:clean
+clean:
+	$(V)$(RM) *.o weibo_server 2>/dev/null

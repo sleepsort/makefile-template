@@ -1,0 +1,16 @@
+# Makefile template for latex pdfs
+
+targets := $(wildcard *.tex)
+targets := $(basename $(notdir $(targets)))
+targets := $(addsuffix .pdf,$(targets))
+
+all: $(targets)
+%.pdf: %.tex
+	pdflatex $<
+	pdflatex $<
+	@rm -rf *.log *.aux
+.PHONY: clean show
+clean:
+	rm -rf $(targets)
+show:
+	evince $(targets)

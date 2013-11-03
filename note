@@ -1,0 +1,57 @@
+#!/usr/bin/env vim
+
+define program-variables
+  $1_sources = $(filter %.c,$2)
+  $1_headers = $(filter %.h,$2)
+  $1_objects = $(subst .c,.o,$(filter %.c,$2))
+  $($1_objects): $($1_headers)
+endef
+
+# use make --print-data-base to see the magic!
+$(eval $(call program-variables,ls,ls.c ls.h glob.c glob.h))
+
+
+# some useful variables:
+#
+# $@: target
+# $<: first dependency
+# $^: all dependencies
+# $?: dependencies newer than target
+# $+: similar with $^, but reserving duplicate
+#
+# http://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html
+#
+
+
+# cocurrent example, with upto 6 processes, and multiple line command
+# each process will process files in the same directory with two sub-processes
+#### rules below #######################
+bypid-extract-pattern: bypid-extract-pattern-0 bypid-extract-pattern-1 bypid-extract-pattern-2
+
+bypid-extract-pattern-0:
+  @ls bypid/*.txt | awk '0 == NR % 3' | while read line; do \
+     base=$${line%.txt}; \
+     ./obj/classify-byprocon $$base.low $$base.mid $$base.high < $$line; \
+     ./obj/segment < $$base.low | ./obj/extract-pattern-bypostag > $$base.bypostag.pattern.low & \
+     ./obj/segment < $$base.high| ./obj/extract-pattern-bypostag > $$base.bypostag.pattern.high;   \
+   done
+
+bypid-extract-pattern-1:
+  @ls bypid/*.txt | awk '1 == NR % 3' | while read line; do \
+     base=$${line%.txt}; \
+     ./obj/classify-byprocon $$base.low $$base.mid $$base.high < $$line; \
+     ./obj/segment < $$base.low | ./obj/extract-pattern-bypostag > $$base.bypostag.pattern.low & \
+     ./obj/segment < $$base.high| ./obj/extract-pattern-bypostag > $$base.bypostag.pattern.high;   \
+   done
+
+bypid-extract-pattern-2:
+  @ls bypid/*.txt | awk '2 == NR % 3' | while read line; do \
+     base=$${line%.txt}; \
+     ./obj/classify-byprocon $$base.low $$base.mid $$base.high < $$line; \
+     ./obj/segment < $$base.low | ./obj/extract-pattern-bypostag > $$base.bypostag.pattern.low & \
+     ./obj/segment < $$base.high| ./obj/extract-pattern-bypostag > $$base.bypostag.pattern.high;   \
+   done
+#### commands below #####################
+$ make -j3 bypid-extract-pattern
+
+
