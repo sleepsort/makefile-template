@@ -59,3 +59,7 @@ $ make -j3 bypid-extract-pattern
 #
 # $(RM) -f $(JOBNAME).{log,aux,bbl,blg,toc,lof,lot,out,dvi,4tc,css,lg,idv,xref,tmp}
 #
+
+
+# change shell env in makefile
+SHELL:=/bin/zsh
